@@ -162,7 +162,7 @@ int single_iteration() {
             i = 0;
             advance--;
             state++;
-            if (state == 4) {
+            if (state == 4) { // validate and reset state
                 validate(valid1_char_counter, &valid_counter1, &valid_counter2, pos1, pos2, key, tmp);
                 valid1_char_counter = 0;
                 state = 0;
