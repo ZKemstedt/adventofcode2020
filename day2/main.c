@@ -21,12 +21,16 @@ int check_pos(char *string, char key, int pos) {
 int run() {
     FILE *file;
     char line[ROW_BUFFER_SIZE];
-    int valid1 = 0, valid2 = 0;
+    int valid_counter1 = 0, valid_counter2 = 0;
 
-    file = fopen("day2\\input.txt", "rb");
+    // forward slash when not on windows
+    file = fopen("day2/input.txt", "rb");
     if (file == NULL) {
-        fputs("File error", stderr);
-        return 1;
+        file = fopen("input.txt", "rb");
+        if (file == NULL) {
+            fputs("File error", stderr);
+            return(1);
+        }
     }
 
     while (fgets(line, ROW_BUFFER_SIZE, file)) {
@@ -40,30 +44,39 @@ int run() {
 
         count = scountc(pwd, key);
         if (count >= pos1 && count <= pos2) {
-            valid1++;
+            valid_counter1++;
         }
 
         if (check_pos(pwd, key, pos1-1) != check_pos(pwd, key, pos2-1)) {
-            valid2++;
+            valid_counter2++;
         }
     }
 
     fclose(file);
 
-    printf("Solution for part1: %d\n", valid1);
-    printf("Solution for part2: %d\n", valid2);
+    printf("Solution for part1: %d\n", valid_counter1);
+    printf("Solution for part2: %d\n", valid_counter2);
     return 0;
 }
 
-void advance(int *state, int* i) {
-    i = 0;
-    state++;
-    if (state == 4)
-        state = 0;
+
+// returns 1 on success and 0 on failure
+int set_buffer(char **buf, int size) {
+    free(*buf);
+    *buf = (char *) calloc(size, sizeof(char));
+    if (*buf == NULL) {
+        return 0;
+    }
+    return 1;
 }
 
-void validate(int *valid_counter, int pos1, int pos2, char key, char *pwd) {
-
+// accessing the other args by reference is probably faster?
+void validate(int charcount, int *valid_count1, int *valid_count2, int pos1, int pos2, char key, char *pwd) {
+    if ( (pwd[pos1-1] == key) != (pwd[pos2-1] == key) ) {
+        (*valid_count2)++;
+    }
+    if (charcount >= pos1 && charcount <= pos2)
+        (*valid_count1)++;
 }
 
 
@@ -75,84 +88,122 @@ int single_iteration() {
     FILE *file;
     char *text;
     
-    file = fopen("day2\\input.txt", "rb");    // open
+    // file = fopen("day2\\input.txt", "rb");    // open
+    // forward slash when not on windows
+    file = fopen("day2/input.txt", "rb");
     if (file == NULL) {
-        fputs("File error", stderr);
-        return(1);
+        file = fopen("input.txt", "rb");
+        if (file == NULL) {
+            fputs("File error", stderr);
+            return 1;
+        }
     }
+
     fseek(file, 0, SEEK_END);   // get size
     filesize = ftell(file);
     rewind(file);
     
     text = malloc(filesize + 1);    // allocate
     if (text == NULL) {
-        fputs("Memory allocation error", stderr);
         fclose(file);
-        return(1);
+        goto merror;
     }
     fread(text, 1, filesize, file);   // read
     fclose(file);
-    text[filesize] = 0;   // terminate
-    assert(text[0]);
+    text[filesize] = '\0';   // terminate
 
-    char pwd[20];
+
     char *c = text, *tmp;
     char key;
-    int state = 0, i = 0, valid1 = 0, valid2 = 0, pos1, pos2;
+    int state = 0,
+        advance = 0,
+        i = 0,
+        valid_counter1 = 0,
+        valid_counter2 = 0,
+        valid1_char_counter = 0,
+        pos1,
+        pos2;
+    
+    tmp = (char *) calloc(20, sizeof(char));
+    if (tmp == NULL)
+        goto merror;
+
     do {
-        switch (*c)
-            {
-            case '-':   /* done with state 0 */
-                assert(state == 0);
-                printf("%s-", tmp);
-                // tmp[i] = 0;
+        switch (*c) {
+            case '-':                       /* done with state 0 */
                 pos1 = atoi(tmp);
-                advance(&state, &i);
+                advance++;
                 break;
-            case ' ':   /* done with state 1 or done with state 2 */
-                assert(state == 1 || state == 2);
-                if (state == 1) {
-                    // tmp[i] = 0;
+            case ' ':
+                if (state == 1) {           /* done with state 1 */
                     pos2 = atoi(tmp);
-                    advance(&state, &i);
-                    break;
-                }
-                if (state == 2) {
-                    assert(tmp[0]);
-                    assert(i == 1);
+                    advance++;
+                } else if (state == 2) {    /* done with state 2 */
                     key = tmp[0];
-                    advance(&state, &i);
-                    break;
+                    advance++;
                 }
+                break;
             case ':':   /* ignore */
                 break;
-            case '\n':  /* done with line, validate pwd and then reset state */
-                assert(state == 3);
-                // pwd[i] = 0;
-                validate(&valid2, pos1, pos2, key, pwd);
-                advance(&state, &i);
+            case '\n':  /* done with line */
+                advance++;
                 break;
-            default:
-                assert(state < 4);
-                assert(i < 21);
-                tmp[i] = c[*c+i];
+            default:    /* add to buffer */
+                tmp[i] = *c;
                 i++;
+                if (state == 3) { // char counter to validate part1
+                    if (*c == key)
+                        valid1_char_counter++;
+                }
                 break;
+        }
+
+        if (advance) {
+            i = 0;
+            advance--;
+            state++;
+            if (state == 4) {
+                validate(valid1_char_counter, &valid_counter1, &valid_counter2, pos1, pos2, key, tmp);
+                valid1_char_counter = 0;
+                state = 0;
             }
+            if (!set_buffer(&tmp, 20))
+                goto merror;
+        }
     } while (*(c++));
 
+    printf("Solution for part1: %d\n", valid_counter1);
+    printf("Solution for part2: %d\n", valid_counter2);
+
     return 0;
+
+    // cleanup for memory errors
+    merror:
+        fputs("Memory allocation error", stderr);
+        if (text != NULL)
+            free(text);
+        if (tmp != NULL)
+            free(tmp);
+        return 1;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    int run1 = 1, run2 = 1;
+    
+    if (argc > 1)
+        run1 = atoi(argv[1]);
+    if (argc > 2)
+        run2 = atoi(argv[2]);
+
     // normal operation
-    if (run())
-        exit(1);
+    if (run1)
+        if (run())
+            return EXIT_FAILURE;
 
+    // as a single iteraion
+    if (run2)
+        if (single_iteration())
+            return EXIT_FAILURE;
 
-
-    if (single_iteration())
-        exit(1);
-
-    return 0;        
+    return EXIT_SUCCESS;        
 }
