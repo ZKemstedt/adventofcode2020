@@ -1,4 +1,7 @@
-__pycache__
 .vscode
 
-day*/*.exe
+*__pycache__
+*.DS_Store
+*.exe
+*.out
+*.dSYM
