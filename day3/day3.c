@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG 1 // flip it.
+#define DEBUG 0 // flip it.
 
 #define ROWLEN 32
 #define BORDER 31
@@ -30,12 +30,16 @@ int main() {
     long filesize;
     long total_trees = 1;
 
-    file = fopen("day2\\input.txt", "rb");
+    // bruh
+    file = fopen("day3\\input.txt", "rb");
     if (file == NULL) {
         file = fopen("input.txt", "rb");
         if (file == NULL) {
-            fputs("File error", stderr);
-            exit(EXIT_FAILURE);
+            file = fopen("day3/input.txt", "rb");
+            if (file == NULL) {
+                fputs("File error", stderr);
+                exit(EXIT_FAILURE);
+            }
         }
     }
     fseek(file, 0, SEEK_END);
@@ -77,11 +81,9 @@ int main() {
             if (DEBUG) {
                 // print out the map and our position in it
                 // note that for lane5, every 2nd row is skipped
-                *(c -= pos_x);
-                dbg_line_start = c;
+                dbg_line_start = c - pos_x;
                 memset(dbg_line, '\0', 32);
-                strncpy(dbg_line, c, 32);
-                *(c += pos_x);
+                strncpy(dbg_line, dbg_line_start, 32);
 
                 dbg_c_pos = c - dbg_line_start;
                 dbg_line[dbg_c_pos] = 'O';
@@ -108,10 +110,8 @@ int main() {
         total_trees *= lane->trees;
     }
 
-    printf("\n\tThe product of encountered trees of each lane is: %d\n\n", total_trees);
+    printf("\n\tThe product of encountered trees of each lane is: %ld\n\n", total_trees);
 
     free(map);
     exit(EXIT_SUCCESS);
 }
-
-
