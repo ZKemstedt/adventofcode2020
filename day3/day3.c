@@ -30,17 +30,14 @@ int main() {
     long filesize;
     long total_trees = 1;
 
-    // bruh
-    file = fopen("day3\\input.txt", "rb");
+    file = fopen("day3\\input.txt", "rb");  // parent dir - windows
+    if (file == NULL)
+        file = fopen("input.txt", "rb");    // same dir
+    if (file == NULL)
+        file = fopen("day3/input.txt", "rb");// parent dir - *nix
     if (file == NULL) {
-        file = fopen("input.txt", "rb");
-        if (file == NULL) {
-            file = fopen("day3/input.txt", "rb");
-            if (file == NULL) {
-                fputs("File error", stderr);
-                exit(EXIT_FAILURE);
-            }
-        }
+        fputs("File error", stderr);
+        exit(EXIT_FAILURE);
     }
     fseek(file, 0, SEEK_END);
     filesize = ftell(file);
