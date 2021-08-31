@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal",
+            "console": "integratedTerminal"
         },
         {
             "name": "gcc - Build and debug active file",
@@ -23,41 +23,6 @@
             "externalConsole": false,
             "MIMode": "lldb",
             "preLaunchTask": "C/C++: gcc build active file"
-        },
-        {
-            "name": "(gdb) Launch",
-            "preLaunchTask": "build",
-            "type": "cppdbg",
-            "request": "launch",
-            "args": [],
-            "stopAtEntry": true,
-            "cwd": "${workspaceRoot}",
-            "environment": [],
-            "externalConsole": true,
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "logging": {
-                "engineLogging": false,
-                "trace": false,
-            },
-            "windows": {
-                "program": "${fileDirname}/${fileBasenameNoExtension}.exe",
-                "MIMode": "gdb",
-                "miDebuggerPath": "/usr/bin/gdb" // Path to gdb on windows
-            },
-            "linux": {
-                "program": "${workspaceRoot}/a.out",
-                "MIMode": "gdb"
-            },
-            "osx": {
-                "program": "${workspaceRoot}/a.out",
-                "MIMode": "lldb"
-            }
         }
     ]
 }
