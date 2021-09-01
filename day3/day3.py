@@ -1,57 +1,34 @@
-ROWLEN = 31  # 32 but we don't want the newline
+from functools import reduce
 
 
-def read_input_file(day: str) -> list[str]:
-    with open(f"{day}/input.txt") as f:
-        lines = f.readlines()
-    return lines
-
-
-def split(word: str) -> list[str]:
-    word = word[:ROWLEN]
-    return [char for char in word]
-
-
-def traverse_matrix(matrix: list[list[str]], move_x: int, move_y: int) -> int:
-    goal = len(matrix)  # 323
-    x, y, trees = 0, 0, 0
-
-    while y < goal:
-        if x >= ROWLEN:
-            x -= ROWLEN
-
-        if matrix[y][x] == '#':
-            trees += 1
-
-        y += move_y
-        x += move_x
-
+def travel(matrix, right: int, down: int) -> int:
+    width = len(matrix[0].strip())
+    trees = len([
+        x for x, line
+        in enumerate(matrix[::down])
+        if line[(x * right) % width] == "#"
+    ])
     return trees
 
 
 def run() -> None:
-    lines = read_input_file('day3')
-    matrix = [split(line) for line in lines]
-    lanes = [
-        (1, 1),
-        (3, 1),
-        (5, 1),
-        (7, 1),
-        (1, 2)
+    with open("day3/input.txt") as f:
+        lines = f.readlines()
+    right = [1, 3, 5, 7, 1]
+    down = [1, 1, 1, 1, 2]
+    trees = [
+        travel(lines, right[i], down[i])
+        for i
+        in range(5)
     ]
-    product = 1
-    for i, lane in enumerate(lanes, start=1):
-        res = traverse_matrix(matrix, lane[0], lane[1])
-        print(f'lane {i} (right {lane[0]}, down {lane[1]}) encountered {res} trees.')
-        product *= res
-    print(f'product of all trees encountered: {product}')
+    print("\n".join([
+        f"Lane {i + 1}: {tree} trees"
+        for i, tree
+        in enumerate(trees)
+    ]))
 
-def traverse_v2(right: int, down: int) -> int:
-    pass
-
-def v2() -> None:
-    with open(f"day3/input.txt") as f:
-        lines = [line[:31] for line in f.readlines()]
+    p = reduce(lambda x, y: x * y, trees)
+    print(f"\n\tThe product of encountered trees of each lane is: {p}\n")
 
 
 if __name__ == "__main__":

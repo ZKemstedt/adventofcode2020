@@ -172,6 +172,8 @@ int single_iteration() {
         }
     } while (*(c++));
 
+    free(text);
+    free(tmp);
     printf("Solution for part1: %d\n", valid_counter1);
     printf("Solution for part2: %d\n", valid_counter2);
 
