@@ -1,7 +1,11 @@
+# config is local
 .vscode
 
-*__pycache__
+# Mac OS system cache files
 *.DS_Store
+
+# Builds 
 *.exe
 *.out
 *.dSYM
+*__pycache__
