@@ -1,3 +1,2 @@
-some of the vscode things are from here
-[https://github.com/microsoft/vscode-cpptools/tree/main/Code%20Samples/Fib]
-
+# A repository containing my solutions for Advent of Code 2020
+[Challenges](https://adventofcode.com/2020/)

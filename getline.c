@@ -1,5 +1,3 @@
-// I thought that getline was part of the standard library? wtf?
-
 /* Copyright (C) 1991 Free Software Foundation, Inc.
 This file is part of the GNU C Library.
 
