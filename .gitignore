@@ -5,6 +5,7 @@
 *.DS_Store
 
 # Builds 
+day?/day?
 *.exe
 *.out
 *.dSYM
