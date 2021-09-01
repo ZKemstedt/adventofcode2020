@@ -9,16 +9,20 @@ for this reason it is not available on windows ._.
 
 ```
 
-## Removing trailing newline character from fgets() input
-[https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input]
+## Removing trailing newline character from fgets() input (or any newline-delimited char-array)
+[source](https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input)
 ```c
-Name[strcspn(Name, "\n")] = 0;
+some_string[strcspn(some_string, "\n")] = 0;
 
 ```
+
 ## Count occurences of char in string
-[https://stackoverflow.com/questions/4235519/counting-number-of-occurrences-of-a-char-in-a-string-in-c/4235545]
+[source](https://stackoverflow.com/questions/4235519/counting-number-of-occurrences-of-a-char-in-a-string-in-c/4235545)
 ```c
-// the one I use
+// source
+for (i=0; s[i]; s[i]=='.' ? i++ : *s++)
+
+// my implementation
 int scountc(char *string, char key) {
     int i;
     char *s = string;
@@ -26,6 +30,5 @@ int scountc(char *string, char key) {
     return i;
 }
 
-// based on this one liner missing declarations
-for (i=0; s[i]; s[i]=='.' ? i++ : *s++);
+
 ```
