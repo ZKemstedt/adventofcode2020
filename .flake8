@@ -1,0 +1,10 @@
+[flake8]
+exclude =
+    .git,
+    __pycache__,
+    *.c
+    *.exe
+    *.md
+    !*.py
+max-line-length = 120
+indent-size = 4
