@@ -64,7 +64,7 @@ int Passport_is_valid(struct Passport *pp) {
     }
 }
 
-/* Part 2: 1 Additional restrictions are applied:
+/* Part 2: Additional restrictions are applied:
     All fields (ignoring cid) must be set.
     byr - four digits; at least 1920 and at most 2002.
     iyr - four digits; at least 2010 and at most 2020.
