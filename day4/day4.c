@@ -35,7 +35,7 @@ void Passport_destroy(struct Passport *pp) {
     free(pp);
 }
 
-/* C cannot use strings in switches, so they are hashed instead first */
+/* C cannot use strings in switches, so they are hashed first */
 void Passport_write_field(struct Passport *pp, char *key, char *val) {
     switch (hash((unsigned char *) key)) {
     case 193502530: pp->pid = strdup(val); break;
@@ -51,7 +51,7 @@ void Passport_write_field(struct Passport *pp, char *key, char *val) {
     }
 }
 
-/* Part 1: A passport is valid if all fields are are set ignoring cid. */
+/* Part 1: A passport is valid if all fields (ignoring cid) are set */
 int Passport_is_valid(struct Passport *pp) {
     if (!(pp->hcl == NULL) && !(pp->byr == NULL) && !(pp->iyr == NULL) && !(pp->pid == NULL)
         && !(pp->eyr == NULL) && !(pp->hgt == NULL) && !(pp->ecl == NULL))
@@ -74,9 +74,7 @@ int Passport_is_valid(struct Passport *pp) {
         If in, the number must be at least 59 and at most 76.
     hcl - a # followed by exactly six characters 0-9 or a-f.
     ecl - exactly one of: amb blu brn gry grn hzl oth.
-    pid - a nine-digit number, including leading zeroes.
-    cid - ignored, missing or not.
- */
+    pid - a nine-digit number, including leading zeroes. */
 int Passport_is_valid2(struct Passport *pp) {
     int valid = Passport_is_valid(pp);
     if (valid) {
@@ -106,22 +104,6 @@ int Passport_verify_pid(struct Passport *pp) {
         }
     }
     return 1;
-    //     switch (*val) {
-    //         case '0': case '1': case '2':
-    //         case '3': case '4': case '5':
-    //         case '6': case '7': case '8':
-    //         case '9': continue;
-    //         default:
-    //             printf("invalid pid %s (not a digit: %c)\n", val, *val);
-    //             return;
-    //     }
-    // }
-    // if (c == 10) {
-    //     long tmp = strtoul(val, NULL, 10);
-    //     pp->pid = strdup(val);
-    // } else {
-    //     printf("invalid pid %s (n_digits: %d)\n", val, c);
-    // }
 }
 
 /* byr (Birth Year) - four digits; at least 1920 and at most 2002. */
