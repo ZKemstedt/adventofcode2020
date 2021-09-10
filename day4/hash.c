@@ -1,3 +1,5 @@
+// https://stackoverflow.com/questions/7666509/hash-function-for-string
+
 #include <stdio.h>
 
 unsigned long hash(unsigned char *str) {

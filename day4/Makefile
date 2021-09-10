@@ -1,0 +1,1 @@
+CFALGS=-Wall -g
