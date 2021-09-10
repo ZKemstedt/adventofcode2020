@@ -1,12 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h> 
+#include <ctype.h>
 #include <assert.h>
-#include "hash.c"
-
-#define KLEN_MAX 3
-#define VLEN_MAX 9
+#include "day4.h"
 
 struct Passport {
     char *pid;        // passport id
@@ -18,15 +15,6 @@ struct Passport {
     char *hgt;        // height
     char *ecl;        // eye color
 };
-
-void pp_set_pid(struct Passport *pp, char *val);
-void pp_set_byr(struct Passport *pp, char *val);
-void pp_set_iyr(struct Passport *pp, char *val);
-void pp_set_eyr(struct Passport *pp, char *val);
-void pp_set_cid(struct Passport *pp, char *val);
-void pp_set_hcl(struct Passport *pp, char *val);
-void pp_set_ecl(struct Passport *pp, char *val);
-void pp_set_hgt(struct Passport *pp, char *val);
 
 struct Passport *Passport_create() {
     struct Passport *pp = calloc(1, sizeof(struct Passport));
@@ -47,25 +35,8 @@ void Passport_destroy(struct Passport *pp) {
     free(pp);
 }
 
-/* forwards attempts to set various pp fields to their respective setters
- * numbers are obtained using a hash function on the fields, see hash.c
- */
-void set_passport_field_2(struct Passport *pp, char *key, char *val) {
-    switch (hash((unsigned char *) key)) {
-    case 193502530: pp_set_pid(pp, val); break;
-    case 193487826: pp_set_byr(pp, val); break;
-    case 193495449: pp_set_iyr(pp, val); break;
-    case 193491093: pp_set_eyr(pp, val); break;
-    case 193488373: pp_set_cid(pp, val); break;
-    case 193490361: pp_set_ecl(pp, val); break;
-    case 193493628: pp_set_hcl(pp, val); break;
-    case 193493768: pp_set_hgt(pp, val); break;
-    default:
-        break;
-    }
-}
-
-void set_passport_field(struct Passport *pp, char *key, char *val) {
+/* C cannot use strings in switches, so they are hashed instead first */
+void Passport_write_field(struct Passport *pp, char *key, char *val) {
     switch (hash((unsigned char *) key)) {
     case 193502530: pp->pid = strdup(val); break;
     case 193487826: pp->byr = strdup(val); break;
@@ -80,153 +51,202 @@ void set_passport_field(struct Passport *pp, char *key, char *val) {
     }
 }
 
-/* returns 1 if all fields are set, except cid and hgt_unit wich are ignored */
-int validate_passport(struct Passport *pp) {
+/* Part 1: A passport is valid if all fields are are set ignoring cid. */
+int Passport_is_valid(struct Passport *pp) {
     if (!(pp->hcl == NULL) && !(pp->byr == NULL) && !(pp->iyr == NULL) && !(pp->pid == NULL)
-     && !(pp->eyr == NULL) && !(pp->hgt == NULL) && !(pp->ecl == NULL)) {
-
-        printf("valid :)\n");
+        && !(pp->eyr == NULL) && !(pp->hgt == NULL) && !(pp->ecl == NULL))
+    {
+        // printf("valid :)\n");
         return 1;
     } else {
-        printf("invalid :/\n");
+        // printf("invalid :/\n");
         return 0;
     }
 }
 
-/* set passport id, contains checks, will do nothing if the input is invalid */
-void pp_set_pid(struct Passport *pp, char *val) {
-    int c;
-    if (strlen(val) > 9) {
-        printf("invalid pid %s (len %lu)\n", val, strlen(val));
-        return;
+/* Part 2: 1 Additional restrictions are applied:
+    All fields (ignoring cid) must be set.
+    byr - four digits; at least 1920 and at most 2002.
+    iyr - four digits; at least 2010 and at most 2020.
+    eyr - four digits; at least 2020 and at most 2030.
+    hgt - a number followed by either cm or in:
+        If cm, the number must be at least 150 and at most 193.
+        If in, the number must be at least 59 and at most 76.
+    hcl - a # followed by exactly six characters 0-9 or a-f.
+    ecl - exactly one of: amb blu brn gry grn hzl oth.
+    pid - a nine-digit number, including leading zeroes.
+    cid - ignored, missing or not.
+ */
+int Passport_is_valid2(struct Passport *pp) {
+    int valid = Passport_is_valid(pp);
+    if (valid) {
+        valid &= Passport_verify_pid(pp);
+        valid &= Passport_verify_byr(pp);
+        valid &= Passport_verify_iyr(pp);
+        valid &= Passport_verify_eyr(pp);
+        valid &= Passport_verify_cid(pp);
+        valid &= Passport_verify_hcl(pp);
+        valid &= Passport_verify_ecl(pp);
+        valid &= Passport_verify_hgt(pp);
     }
-    for (c=0 ; *val && c<10 ; c++) {
-        switch (*val) {
-            case '0': case '1': case '2':
-            case '3': case '4': case '5':
-            case '6': case '7': case '8':
-            case '9': continue;
-            default:
-                printf("invalid pid %s (not a digit: %c)\n", val, *val);
-                return;
-        }
-    }
-    if (c == 10) {
-        long tmp = strtoul(val, NULL, 10);
-        pp->pid = strdup(val);
-    } else {
-        printf("invalid pid %s (n_digits: %d)\n", val, c);
-    }
+    return valid;
 }
 
-/* set birth year, contains checks, will do nothing if the input is invalid */
-void pp_set_byr(struct Passport *pp, char *val) {
-    long tmp = strtol(val, NULL, 10);
+/* pid (Passport ID) - a nine-digit number, including leading zeroes. */
+int Passport_verify_pid(struct Passport *pp) {
+    if (strlen(pp->pid) != 9) {
+        printf("invalid pid %s (len %lu)\n", pp->pid, strlen(pp->pid));
+        return 0;
+    }
+    char *tmp = pp->pid;
+    for (int i=0 ; i<9 ; i++) {
+        if (!isdigit(*(tmp++))) {
+            printf("invalid pid %s (not a digit: %c)\n", pp->pid, *(--tmp));
+            return 0;
+        }
+    }
+    return 1;
+    //     switch (*val) {
+    //         case '0': case '1': case '2':
+    //         case '3': case '4': case '5':
+    //         case '6': case '7': case '8':
+    //         case '9': continue;
+    //         default:
+    //             printf("invalid pid %s (not a digit: %c)\n", val, *val);
+    //             return;
+    //     }
+    // }
+    // if (c == 10) {
+    //     long tmp = strtoul(val, NULL, 10);
+    //     pp->pid = strdup(val);
+    // } else {
+    //     printf("invalid pid %s (n_digits: %d)\n", val, c);
+    // }
+}
+
+/* byr (Birth Year) - four digits; at least 1920 and at most 2002. */
+int Passport_verify_byr(struct Passport *pp) {
+    long tmp = strtol(pp->byr, NULL, 10);
     if (2003 > tmp && tmp > 1919) {
-        pp->byr = strdup(val);
+        return 1;
     } else {
-        printf("invalid birth year %s\n", val);
+        printf("invalid birth year %s\n", pp->byr);
+        return 0;
     }
 }
 
-/* set issue year, contains checks, will do nothing if the input is invalid */
-void pp_set_iyr(struct Passport *pp, char *val) {
-    long tmp = strtol(val, NULL, 10);
+/* iyr (Issue Year) - four digits; at least 2010 and at most 2020. */
+int Passport_verify_iyr(struct Passport *pp) {
+    long tmp = strtol(pp->iyr, NULL, 10);
     if (2021 > tmp && tmp > 2009) {
-        pp->iyr = strdup(val);
+        return 1;
     } else {
-        printf("invalid issue year %s\n", val);
+        printf("invalid issue year %s\n", pp->iyr);
+        return 0;
     }
 }
 
-/* set expiration year, contains checks, will do nothing if the input is invalid */
-void pp_set_eyr(struct Passport *pp, char *val) {
-    long tmp = strtol(val, NULL, 10);
+/* eyr (Expiration Year) - four digits; at least 2020 and at most 2030. */
+int Passport_verify_eyr(struct Passport *pp) {
+    long tmp = strtol(pp->eyr, NULL, 10);
     if (2031 > tmp && tmp > 2019) {
-        pp->eyr = strdup(val);
+        return 1;
     } else {
-        printf("invalid expirate date %s\n", val);
+        printf("invalid expiration date %s\n", pp->eyr);
+        return 0;
     }
 }
 
-/* cid is always ignored */
-void pp_set_cid(struct Passport *pp, char *val) {
-    return;
+/* cid (Country ID) - ignored, missing or not. */
+int Passport_verify_cid(struct Passport *pp) {
+    return 1;
 }
 
-/* set hair color, contains checks, will do nothing if the input is invalid */
-void pp_set_hcl(struct Passport *pp, char *val) {
-    if (*val != '#') {
-        printf("invalid hair color %s (expect #{hex})\n", val);
-    } else if (strlen(val) != 7) {
-        printf("invalid hair color %s (hex too short)\n", val);
+/* hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f. */
+int Passport_verify_hcl(struct Passport *pp) {
+    char *tmp = pp->hcl;
+    if (strlen(pp->hcl) != 7) {
+        printf("invalid hair color %s (hex too short)\n", pp->hcl);
+        return 0;
+    } else if (*tmp != '#') {
+        printf("invalid hair color %s (expect #{hex})\n", pp->hcl);
+        return 0;
     } else {
-        val++;
-        long tmp = strtoul(val, NULL, 16);
-        if (UINT32_MAX > tmp > 0) {     // NOTE can still fail
-            pp->hcl = strdup(val);
+        for (int i=0 ; i<6 ; i++) {
+            if (!isxdigit(*(++tmp))) {
+                printf("invalid hair color %s (not hex digit %c)\n", pp->hcl, *(--tmp));
+                return 0;
+            }
+        }
+        return 1;
+    }
+}
+
+/* ecl (Eye Color) - exactly one of: amb blu brn gry grn hzl oth. */
+int Passport_verify_ecl(struct Passport *pp) {
+    if (strlen(pp->ecl) == 3 && (!strncmp(pp->ecl, "amb", 3) || !strncmp(pp->ecl, "blu", 3)
+        || !strncmp(pp->ecl, "brn", 3) || !strncmp(pp->ecl, "gry", 3) || !strncmp(pp->ecl, "grn", 3)
+        || !strncmp(pp->ecl, "hzl", 3) || !strncmp(pp->ecl, "oth", 3))) {
+        return 1;
+    } else {
+        printf("invalid eye color: %s\n", pp->ecl);
+        return 0;
+    }
+}
+
+/* hgt (Height) - a number followed by either cm or in:
+    If cm, the number must be at least 150 and at most 193.
+    If in, the number must be at least 59 and at most 76. */
+int Passport_verify_hgt(struct Passport *pp) {
+    char *unit = pp->hgt;
+    unit += strlen(pp->hgt) - 2;  // unit is the last 2 characters
+
+    if (strlen(unit) != 2) {
+        printf("invalid height %s, (unit len %ld)\n", pp->hgt, strlen(pp->hgt) - 2);
+    } else {
+        long value = strtol(pp->hgt, &unit, 10);
+        if (!strncmp(unit, "cm", 2)) {
+            if (194 > value && value > 149) {
+                return 1;
+            } else {
+                printf("invalid height %s (number %ld)\n", pp->hgt, value);
+            }
+        } else if (!strncmp(unit, "in", 2)) {
+            if (77 > value && value > 58) {
+                return 1;
+            } else {
+                printf("invalid height %s (number %ld)\n", pp->hgt, value);
+            }
         } else {
-            printf("invalid hair color %s (invalid hex)\n", val);
+            printf("invalid height %s (unit %s)\n", pp->hgt, unit);
         }
     }
+    return 0;
 }
 
-/* set eye color, contains checks will do nothing if the input is invalid */
-void pp_set_ecl(struct Passport *pp, char *val) {
-    if (strlen(val) == 3 && ( strncmp(val, "amb", 3) || strncmp(val, "blu", 3)
-        || strncmp(val, "brn", 3) || strncmp(val, "gry", 3) || strncmp(val, "grn", 3)
-        || strncmp(val, "hzl", 3) || strncmp(val, "oth", 3))) {
-        pp->ecl = strdup(val);
-    } else {
-        printf("invalid eye color: %s\n", val);
-    }
+/* hash function for strings
+    src: https://stackoverflow.com/questions/7666509/hash-function-for-string */
+unsigned long hash(unsigned char *str) {
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++))
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
+    return hash;
 }
-
-/* set height and height unit, contains checks, will do nothing if the input is invalid */
-void pp_set_hgt(struct Passport *pp, char *val) {
-    char *end = val;
-    end += strlen(val) - 2;  // hgt_unit is the last 2 characters
-    if (strlen(end) != 2) {
-        printf("invalid height %s, (unit len %ld)\n", val, strlen(val) - 2);
-        return;
-    }
-
-    long tmp = strtol(val, &end, 10); // properly read the numbers
-
-    if (*end == 'c' && *(end+1) == 'm') {
-        if (194 > tmp && tmp > 149) {
-            pp->hgt = strndup(val, strlen(val) - 2);
-        } else {
-            printf("invalid height %s (number %ld)\n", val, tmp);
-        }
-    } else if (*end == 'i' && *(end+1) == 'n') {
-        if (77 > tmp && tmp > 59) {
-            pp->hgt = strndup(val, strlen(val) - 2);
-        } else {
-            printf("invalid height %s (number %ld)\n", val, tmp);
-        }
-    } else {
-        printf("invalid height %s (unit %s)\n", val, end);
-    }
-}
-
 
 int parse_word_delimited(char **dst, char **src, char *dlm) {
     short end = strcspn(*src, dlm);
-    // printf("len: %d\n", end);
     assert(end);
     if (end) {
         *dst = strndup(*src, end);
-        // printf("string: %s\n", *dst);
     }
-    return ++end; // include the delimiter
+    return ++end; // do not include the delimiter
 }
 
 /* Parse them all, boss */
 void parse_passports(char *raw, long long sz) {
     long valid_passports = 0, valid_passports_2 = 0;
     struct Passport *pp = Passport_create();
-    struct Passport *pp2 = Passport_create();
     char *key, *val;
 
     do {
@@ -235,50 +255,26 @@ void parse_passports(char *raw, long long sz) {
 
         assert(strlen(key) && strlen(val));
 
-        set_passport_field(pp, key, val);
-        set_passport_field_2(pp2, key, val);
+        Passport_write_field(pp, key, val);
         free(key);
         free(val);
 
         if (*raw == '\n') {
             raw++;
-            printf("new passport\n");
-            valid_passports += validate_passport(pp);
-            valid_passports_2 += validate_passport(pp2);
+            valid_passports += Passport_is_valid(pp);
+            valid_passports_2 += Passport_is_valid2(pp);
 
-            if (!*raw) {
-                printf("done\n");
-                break;
-            }
-
-            // a realloc or simply overwrite would be faster but this feels easier
             Passport_destroy(pp);
-            Passport_destroy(pp2);
             pp = Passport_create();
-            pp2 = Passport_create();
         }
 
     } while (*raw);
 
     Passport_destroy(pp);
-    Passport_destroy(pp2);
 
     printf("Valid passport count: %ld\n", valid_passports);
     printf("Valid passport count2: %ld\n", valid_passports_2);
 }
-
-
-        // long newline = hash((unsigned char *) "\n");
-        // long key = hash((unsigned char *) *raw); 
-        // if (newline == key) {
-        //     printf("new passport?\n");
-        //     raw++;
-        //     valid_passports += validate_passport(pp);
-
-        //     Passport_destroy(pp);
-        //     pp = Passport_create();
-        // }
-
 
 int main(int agrc, char* argv[]) {
     FILE *file;
