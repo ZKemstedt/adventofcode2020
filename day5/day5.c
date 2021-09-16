@@ -59,7 +59,7 @@ int main() {
     file = fopen("input.txt", "rb");
     if (file == NULL) {
         printf("Error: failed to open file\n");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     fseek(file, 0, SEEK_END);
@@ -70,7 +70,7 @@ int main() {
     if (text == NULL) {
         fclose(file);
         printf("Error: failed to allocate memory for file contents\n");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
     fread(text, 1, filesize+1, file);
     fclose(file);
@@ -79,5 +79,5 @@ int main() {
     int result = parse_seats(text);
 
     free(text);
-    return result;
+    exit(result);
 }
