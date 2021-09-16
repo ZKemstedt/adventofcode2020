@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define INPUT_FILE "input.txt"
+
+char *replace_char(char* str, char find, char replace){
+    char *pos = strchr(str, find);
+    while (pos) {
+        *pos = replace;
+        pos = strchr(pos, find);
+    }
+    return str;
+}
+
+int main() {
+    FILE *stream;
+    size_t len = 0;
+    ssize_t nread;
+    char *line = NULL;
+    char c;
+    int id, min = 1024, max = 0, sum = 0;
+    int count = 0;
+    
+    stream = fopen(INPUT_FILE, "rb");
+    if (stream == NULL) {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
+
+    while ((nread = getline(&line, &len, stream)) != -1) {
+        count++;
+        line[10] = '\0';
+        line = replace_char(line, 'R', '1');
+        line = replace_char(line, 'B', '1');
+        line = replace_char(line, 'L', '0');
+        line = replace_char(line, 'F', '0');
+
+        id = (int) strtol(line, NULL, 2);
+        sum += id;
+        min = id < min ? id : min;
+        max = id > max ? id : max;
+    }
+
+    int seat = ((max - min + 1) / 2.0 * (min + max)) - sum;
+
+    printf("Day 5 - Part 1: %d\n", max);
+    printf("Day 5 - Part 2: %d\n", seat);
+
+end:
+    free(line);
+    fclose(stream);
+    exit(EXIT_SUCCESS);
+}
