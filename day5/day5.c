@@ -7,7 +7,7 @@
 #define DEBUG 0
 
 #if DEBUG
-const char *long_to_binary(long x) {
+const char *long_to_binary_string(long x) {
     static char b[11];
     b[0] = '\0';
 
@@ -85,7 +85,7 @@ int parse_seats(char *text) {
         text++;
 
         #if DEBUG
-        printf("%s => %s => %d\n", buf, long_to_binary(seat), seat);
+        printf("%s => %s => %d\n", buf, long_to_binary_string(seat), seat);
         #endif
     }
     return find_max(seats) ^ find_seat(seats);
