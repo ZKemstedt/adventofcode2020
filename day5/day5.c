@@ -42,7 +42,7 @@ int parse_seats(char *text) {
         sum += seat;
     }
 
-    my_seat = ((max - min + 1) / 2.0 * (min + max)) - sum;
+    my_seat = ((max - min + 1) * 0.5 *  (min + max)) - sum;
 
     printf("The highest seat id is %d\n", max);
     printf("The lowest seat id is %d\n", min);
