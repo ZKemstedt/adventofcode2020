@@ -58,7 +58,7 @@ int parse_seats(char *text) {
     while (1) {
         if (strcspn(text, "\n") != LINELEN) break;
 
-        #if (DEBUG)
+        #if DEBUG
         strncpy(buf, text, LINELEN);
         buf[10] = '\0';
         #endif
