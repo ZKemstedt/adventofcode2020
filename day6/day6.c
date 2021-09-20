@@ -4,13 +4,14 @@
 
 #define INPUT_FILE "input.txt"
 
-/* Set all fields of an array arr to the value v */
+/* Set all fields of a group array `arr` to the value `v` */
 void array_set(int arr[26], int v) {
     for (int i = 0; i < 26; i++) {
         arr[i] = v;
     }
 }
 
+/* Formatted printing of group arrays */
 void array_print(int arr[26]) {
     char start = 'a';
     char empty = '_';
@@ -25,10 +26,10 @@ void array_print(int arr[26]) {
     printf("\n");
 }
 
-/* increment the counter sum for each non-zero value in ans */
-void sum_inc(unsigned long long *sum, int ans[26]) {
+/* increment the counter `sum` for each "yes" (1) in group array `arr` */
+void sum_inc(unsigned long long *sum, int arr[26]) {
     for (int i = 0; i < 26; i++) {
-        *sum += ans[i];
+        *sum += arr[i];
     }
 }
 
