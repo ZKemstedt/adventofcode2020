@@ -39,7 +39,7 @@ void run(FILE *stream) {
     ssize_t nread = 0;
     unsigned long long sum1 = 0, sum2 = 0;
     /* Groups answers are represented in binary form */
-    int answers[26], group1[26], group2[26]; 
+    int answers[26], group1[26], group2[26], i; 
 
     array_set(group1, 0);
     array_set(group2, 1);
@@ -55,13 +55,12 @@ void run(FILE *stream) {
         } else if (line[nread - 1] == '\n') {
             line[nread - 1] = '\0';
         }
-        c = line;
         array_set(answers, 0);
         // registering answers
-        for (int i = 0; i++ < nread; c++) {
+        for ((i = 0, c = line); i < nread; (i++, c++)) {
             answers[*c - 'a'] |= 1;
         }
-        for (int i = 0; i < 26; i++) {
+        for (i = 0; i < 26; i++) {
             group1[i] |= answers[i];
             group2[i] &= answers[i];
         }
