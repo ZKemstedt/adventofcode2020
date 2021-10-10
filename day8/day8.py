@@ -32,7 +32,7 @@ class Game:
     def nop(self, arg: int) -> None:
         self.line += 1
 
-    def run(self) -> bool:
+    def run(self) -> str:
         if self.line > self.end or self.line < 0:
             return 'error'
 
@@ -50,7 +50,7 @@ class Game:
             action(ins.arg)
             return 'ok'
 
-        print(f'missed instruction: {ins.name} {ins.arg} line: {self.line}')
+        print(f'unhandled instruction: {ins.name} {ins.arg} line: {self.line}')
 
         return 'error'
 
@@ -60,20 +60,15 @@ def parse_line(line: str) -> Instruction:
     return Instruction(name, arg)
 
 
-def main() -> None:
-    with open('input.txt') as f:
-        instructions = [parse_line(line) for line in f.readlines()]
-
-    # Part 1
+def part1(instructions: list[Instruction]) -> int:
     game = Game(instructions)
-    run = True
-    while run:
-        run = True if game.run() == 'ok' else False
+    while game.run() == 'ok':
+        continue
 
-    print(f'Part 1: {game._acc}')
+    return game._acc
 
-    # Part 2
-    solved = False
+
+def part2(instructions: list[Instruction]) -> int:
     for i, ins in enumerate(instructions):
         new = instructions[:i] + [Instruction.flipped(ins)] + instructions[i+1:]
         game = Game(new)
@@ -85,14 +80,20 @@ def main() -> None:
                 continue
 
             if res == 'done':
-                solved = True
+                return game._acc
 
             if res in ['error', 'loop', 'done']:
                 break
 
-        if solved:
-            print(f'Part 2: {game._acc}')
-            break
+    return -1
+
+
+def main() -> None:
+    with open('input.txt') as f:
+        instructions = [parse_line(line) for line in f.readlines()]
+
+    print(f'Part 1: {part1(instructions)}')
+    print(f'Part 2: {part2(instructions)}')
 
 
 if __name__ == '__main__':
