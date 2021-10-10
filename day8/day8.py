@@ -22,9 +22,6 @@ class Game:
         self._acc: int = 0
         self._line: int = 0
 
-    def flip(self, i: int) -> None:
-        self.instructions[i].flip()
-
     def acc(self, arg: int) -> None:
         self._line += 1
         self._acc += arg
