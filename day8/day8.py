@@ -20,37 +20,37 @@ class Game:
         self.done: list[bool] = len(instructions) * [False]
         self.end: int = len(instructions)
         self._acc: int = 0
-        self._line: int = 0
+        self.line: int = 0
 
     def acc(self, arg: int) -> None:
-        self._line += 1
+        self.line += 1
         self._acc += arg
 
     def jmp(self, arg: int) -> None:
-        self._line += arg
+        self.line += arg
 
     def nop(self, arg: int) -> None:
-        self._line += 1
+        self.line += 1
 
     def run(self) -> bool:
-        if self._line > self.end or self._line < 0:
+        if self.line > self.end or self.line < 0:
             return 'error'
 
-        if self._line == self.end:
+        if self.line == self.end:
             return 'done'
 
-        if self.done[self._line]:
+        if self.done[self.line]:
             return 'loop'
 
-        self.done[self._line] = True
-        ins = self.instructions[self._line]
+        self.done[self.line] = True
+        ins = self.instructions[self.line]
         action = getattr(self, ins.name)
 
         if action:
             action(ins.arg)
             return 'ok'
 
-        print(f'missed instruction: {ins.name} {ins.arg} line: {self._line}')
+        print(f'missed instruction: {ins.name} {ins.arg} line: {self.line}')
 
         return 'error'
 
