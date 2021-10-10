@@ -32,7 +32,7 @@ class Game:
     def nop(self, arg: int) -> None:
         self._line += 1
 
-    def _exec(self) -> bool:
+    def run(self) -> bool:
         if self._line > self.end or self._line < 0:
             return 'error'
 
@@ -68,7 +68,7 @@ def main() -> None:
     game = Game(instructions)
     run = True
     while run:
-        run = True if game._exec() == 'ok' else False
+        run = True if game.run() == 'ok' else False
 
     print(f'Part 1: {game._acc}')
 
@@ -79,7 +79,7 @@ def main() -> None:
         game = Game(new)
 
         while True:
-            res = game._exec()
+            res = game.run()
 
             if res == 'ok':
                 continue
