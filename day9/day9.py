@@ -24,19 +24,17 @@ text = """
 576
 """.strip().splitlines()
 
-numbers = [int (x) for x in text]
-preambleSize = 5
-
-#  [35, 20, 15, 25, 47, 40, 62, 55, 65, 95, 102, 117, 150, 182, 127, 219, 299, 277, 309, 576]
+numbers = [int(x) for x in text]
+preambleSize = 25
 
 
 def findInvalidValue(preamble: list[int], remaining: list[int]) -> int:
-  if not remaining:
-      return 0
-  elif isValid(preamble, remaining[0]):
-      return findInvalidValue(preamble[1:] + [remaining[0]], remaining[1:])
-  else:
-      return remaining[0]
+    if not remaining:
+        return 0
+    elif isValid(preamble, remaining[0]):
+        return findInvalidValue(preamble[1:] + [remaining[0]], remaining[1:])
+    else:
+        return remaining[0]
 
 
 def isValid(preamble: list[int], value: int) -> bool:
@@ -66,7 +64,7 @@ def numbersThatStartsSumTo(target: int, remaining: list[int], soFar: list[int]) 
 
 
 def main():
-    invalidValue = findInvalidValue( numbers[:preambleSize], numbers[preambleSize:] )
+    invalidValue = findInvalidValue(numbers[:preambleSize], numbers[preambleSize:])
     print(f"Part 1: {invalidValue}")
 
     weakness = findWeakness(invalidValue, numbers)
